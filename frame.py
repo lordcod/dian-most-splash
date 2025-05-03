@@ -4,9 +4,10 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 
-from dian import ResultParser
-from files import FileParser
-from listener import FileHandler
+from client import Client
+from parsers.result import ResultParser
+from parsers.main import FileParser
+from listeners.splash import FileHandler
 
 MAX_PATH_LENGTH = 40  # Максимальная длина пути для отображения
 BTN_WIDTH = 210  # Максимальная ширина кнопок
@@ -168,25 +169,17 @@ class ProcessingWindow(ctk.CTkToplevel):
         )
         self.btn_exit.pack(pady=5)
 
-        self.result_parser = ResultParser(
-            self.parent.file2_path,  self.parent.file1_path)
-        self.file_parser = FileParser()
-        self.file_handler = FileHandler(
-            self.file_parser, self.parent.folder_path)
-
-        self.result_parser.set_file_parser(self.file_parser)
-        self.file_parser.set_result_parser(self.result_parser)
-        self.file_parser.set_send_response(self.file_handler.send_response)
-
-        self.file_handler.observe()
+        self.client = Client(
+            self.parent.file2_path,
+            self.parent.file1_path,
+            self.parent.folder_path
+        )
+        self.client.observe()
 
         self.protocol("WM_DELETE_WINDOW", self.close_process)
 
-    def hide_message(self):
-        self.message_label.configure(text=" ")
-
     def close_process(self):
-        self.file_handler.stop()
+        self.client.stop()
         self.destroy()
         self.parent.deiconify()
 

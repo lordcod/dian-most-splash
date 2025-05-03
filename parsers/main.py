@@ -1,41 +1,31 @@
 from __future__ import annotations
 
 import threading
-from typing import TYPE_CHECKING, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Dict
 import lxml.etree as ET
 from lenexpy.models_st.heat import Heat
 from lenexpy.models.meet import Meet
 
+
 if TYPE_CHECKING:
-    from dian import ResultParser
-
-
-__version__ = 'Automatic system exchange v0.0.1-B'
+    from client import Client
 
 
 class FileParser:
-    result_parser: Optional[ResultParser]
-    send_response: Callable[[str], None]
     names: Dict[int, Heat]
 
-    def __init__(self):
+    def __init__(self, client: Client):
+        self.client = client
         self.names = {}
         self.meet = None
-        self.result_parser = None
-        self.send_response = None
-
-    def set_result_parser(self, result_parser: ResultParser):
-        self.result_parser = result_parser
-
-    def set_send_response(self, send_response: Callable[[str], None]):
-        self.send_response = send_response
 
     def send_status(self, event_id: int, heat_id: int, status: str):
-        self.send_response(
+        self.client.file_handler.send_response(
             f"STATUS;EVENTID={event_id};HEATID={heat_id};{status}")
 
     def ask_names(self, event_id: int, heat_id: int):
-        self.send_response(f"ASK NAMES;EVENTID={event_id};HEATID={heat_id}")
+        self.client.file_handler.send_response(
+            f"ASK NAMES;EVENTID={event_id};HEATID={heat_id}")
 
     def parse_send_names(self, text: str):
         element = ET.fromstring(text)
@@ -45,7 +35,7 @@ class FileParser:
     def parse_download_event(self, text: str):
         element = ET.fromstring(text)
         self.meet = Meet._parse(element)
-        self.result_parser.update_lenex_meet(self.meet)
+        self.client.result_parser.update_lenex_meet(self.meet)
         return 'DOWNLOAD EVENT;OK'
 
     def parse_file(self, text: str):
@@ -80,7 +70,7 @@ class FileParser:
                     module_receive = None
 
             if name == 'VERSION':
-                responses.append(f'{name};{__version__}')
+                responses.append(f'{name};{self.client.version}')
 
             if name == 'ASK RESULTS':
                 eventid, heatid = args[0].removeprefix(
@@ -88,7 +78,7 @@ class FileParser:
                 args = [int(eventid), int(heatid)]
 
                 thread = threading.Thread(
-                    target=self.result_parser.up,
+                    target=self.client.result_parser.up,
                     args=args
                 )
                 thread.start()

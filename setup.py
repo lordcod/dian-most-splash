@@ -4,12 +4,13 @@ parent = Path(__file__).parent
 filename = parent / 'frame.py'
 
 with_console = '--noconsole'
+with_console = ''
 
 command = f"pyinstaller \
             --onedir \
             --noconfirm {with_console} \
-            --workpath ./user/build \
-            --distpath ./user/dist \
+            --workpath ./.user/build \
+            --distpath ./.user/dist \
             -F {filename}"
 print(command)
 os.system(command)
