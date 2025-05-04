@@ -9,7 +9,7 @@ from listeners.splash import FileHandler
 from os.path import join
 
 
-__version__ = 'Dybfuo.Media system v0.0.1'
+__version__ = 'Dybfuo.Media system v0.0.3b'
 
 
 class Client:
