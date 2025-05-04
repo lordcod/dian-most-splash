@@ -1,16 +1,32 @@
 import os
+import sys
 from pathlib import Path
+
 parent = Path(__file__).parent
-filename = parent / 'frame.py'
+filename = parent / 'loading.py'
 
-with_console = '--noconsole'
-with_console = ''
+# Консольная опция
+with_console = False  # True, если нужна консоль
 
-command = f"pyinstaller \
-            --onedir \
-            --noconfirm {with_console} \
-            --workpath ./.user/build \
-            --distpath ./.user/dist \
-            -F {filename}"
+# Папка для выходного файла
+dist_dir = parent / '.user/dist'
+
+# Берём текущий Python, с которого запустили скрипт
+venv_python = sys.executable
+
+# Базовая команда
+command = f"{venv_python} -m nuitka \
+    --onefile \
+    --output-dir={dist_dir} \
+    --remove-output \
+    --enable-plugin=tk-inter "
+
+# Добавляем опцию для скрытия консоли
+if not with_console:
+    command += "--windows-console-mode=disable "
+
+# Финальная команда + путь к файлу
+command += f"\"{filename}\""
+
 print(command)
 os.system(command)

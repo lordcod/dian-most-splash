@@ -65,12 +65,9 @@ class DianParser:
                     and athl.time):
                 continue
 
-            key = (athl.heatnum, athl.lanenum, athl.completeddistance)
-            if key in event_data:
-                continue
-
-            event_data[key] = athl.time
             event_data[(athl.heatnum, athl.lanenum)] = athl
+            key = (athl.heatnum, athl.lanenum, athl.completeddistance)
+            event_data[key] = athl.time
 
     def save_all_results(self, meet: Meet):
         for order, event in enumerate(meet.events):

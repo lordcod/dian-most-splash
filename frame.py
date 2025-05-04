@@ -5,12 +5,9 @@ from tkinter import filedialog
 import os
 
 from client import Client
-from parsers.result import ResultParser
-from parsers.main import FileParser
-from listeners.splash import FileHandler
 
-MAX_PATH_LENGTH = 40  # Максимальная длина пути для отображения
-BTN_WIDTH = 210  # Максимальная ширина кнопок
+MAX_PATH_LENGTH = 40
+BTN_WIDTH = 210
 
 
 class FileSelectionApp(ctk.CTk):
@@ -184,7 +181,12 @@ class ProcessingWindow(ctk.CTkToplevel):
         self.parent.deiconify()
 
 
-if __name__ == "__main__":
+def init():
     logging.basicConfig(level=logging.DEBUG)
     app = FileSelectionApp()
+    return app
+
+
+if __name__ == '__main__':
+    app = init()
     app.mainloop()

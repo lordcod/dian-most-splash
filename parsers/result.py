@@ -35,14 +35,21 @@ class ResultParser:
         self.lenex = fromfile(lenex_path)
 
     def update_lenex_meet(self, meet: LenexMeet):
-        self.lenex.meet = meet
+        sessions = self.lenex.meet.sessions
+        new_session = meet.sessions[0]
+        for i, old_session in enumerate(sessions):
+            if old_session.number == new_session.number:
+                sessions[i] = new_session
 
     def get_heat(
         self,
+        eventid: int,
         heatid: int
     ):
         for session in self.lenex.meet.sessions:
             for event in session.events:
+                if event.eventid != eventid:
+                    continue
                 for heat in event.heats or []:
                     if heat.heatid == heatid:
                         return True, heat, event
@@ -57,7 +64,6 @@ class ResultParser:
         for s in self.lenex.meet.sessions:
             for e in s.events:
                 if e.eventid == event.eventid:
-                    print('FOUND', i)
                     return self.client.dian_parser.data[i]
                 if e.swimstyle and e.swimstyle.distance:
                     i += 1
@@ -99,7 +105,7 @@ class ResultParser:
         eventid: int,
         heatid: int
     ):
-        ok, heat, event = self.get_heat(heatid)
+        ok, heat, event = self.get_heat(eventid, heatid)
         if not ok:
             _log.info('Not found lenex event %s %s', eventid, heatid)
             return self.NOT_FOUND
