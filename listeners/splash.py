@@ -12,9 +12,11 @@ import logging
 if TYPE_CHECKING:
     from client import Client
 
-lock = Lock()
+send_lock = Lock()
+receive_lock = Lock()
 
 _log = logging.getLogger(__name__)
+PREFIX = '\uFEFF'
 
 
 class FileHandler(FileSystemEventHandler):
@@ -30,7 +32,7 @@ class FileHandler(FileSystemEventHandler):
         if not response:
             return
         _log.debug('Send response %s', response)
-        with lock:
+        with send_lock:
             with open(self.splash_receive, 'wb+') as file:
                 file.write(response.encode())
             time.sleep(0.5)
@@ -39,11 +41,11 @@ class FileHandler(FileSystemEventHandler):
         if event.src_path != self.splash_send:
             return
 
-        time.sleep(1)
+        with contextlib.suppress(OSError), receive_lock:
+            time.sleep(0.1)
 
-        with contextlib.suppress(OSError):
             with open(self.splash_send, 'rb') as file:
-                text = file.read().decode().removeprefix('\uFEFF')
+                text = file.read().decode().removeprefix(PREFIX)
             if not text:
                 return
 
@@ -57,8 +59,10 @@ class FileHandler(FileSystemEventHandler):
             else:
                 self.send_response(response)
 
-            with open(self.splash_send, 'w+') as file:
-                file.write('')
+            with open(self.splash_send, 'rb') as file1:
+                with open(self.splash_send, 'wb+') as file2:
+                    file2.write(
+                        file1.read().decode().removeprefix(PREFIX+text).encode())
 
     def observe(self):
         self.observer = Observer()

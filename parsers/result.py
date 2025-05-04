@@ -56,6 +56,18 @@ class ResultParser:
 
         return False, None, None
 
+    def get_lenex_event(
+        self,
+        index: int
+    ) -> LenexEvent:
+        i = 0
+        for s in self.lenex.meet.sessions:
+            for e in s.events:
+                if i == index:
+                    return e
+                if e.swimstyle and e.swimstyle.distance:
+                    i += 1
+
     def get_dian_event(
         self,
         event: LenexEvent
